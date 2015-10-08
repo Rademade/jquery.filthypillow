@@ -697,13 +697,13 @@
   };
 
   Calendar.prototype.show = function( ) {
-    this.trigger('fp:show');
+    this.$element.trigger('fp:show');
     this.render( );
     this.$container.appendTo( this.$element );
   };
 
   Calendar.prototype.hide = function( ) {
-    this.trigger('fp:hide');
+    this.$element.trigger('fp:hide');
     this.$container.remove( );
     this.removeEvents( );
   };
