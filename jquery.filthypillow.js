@@ -3,13 +3,13 @@
  * by aef
  */
 ( function( factory ) {
-	if ( typeof define === 'function' && define.amd ) {
-		define( [ 'jquery' ], factory );
-	} else if ( typeof exports === 'object' ) {
-		module.exports = factory;
-	} else {
-		factory( jQuery );
-	}
+  if ( typeof define === 'function' && define.amd ) {
+    define( [ 'jquery' ], factory );
+  } else if ( typeof exports === 'object' ) {
+    module.exports = factory;
+  } else {
+    factory( jQuery );
+  }
 } ( function( $ ) {
   var pluginName = "filthypillow",
       name = "plugin_" + pluginName,
@@ -20,9 +20,9 @@
         initialDateTime: null, //function returns moment obj
         enableCalendar: true,
         steps: [ "month", "day", "hour", "minute", "meridiem" ],
-				exitOnBackgroundClick: true,
+        exitOnBackgroundClick: true,
         calendar: {
-					isPinned: false,
+          isPinned: false,
           saveOnDateSelect: false
         }
       },
@@ -30,28 +30,39 @@
       returnableMethods = [ "getDate", "isValid" ];
 
   function FilthyPillow( $element, options ) {
-		var calendarOptions = $.extend( {}, defaults.calendar, options.calendar || {} );
+    var calendarOptions = $.extend( {}, defaults.calendar, options.calendar || {} );
     this.options = $.extend( {}, defaults, options );
-		this.options.calendar = calendarOptions;
+    this.options.calendar = calendarOptions;
 
     this.$element = $element;
     this.setup( );
   }
 
   FilthyPillow.prototype = {
-    template: '<div class="fp-container">' +
-                '<div class="fp-calendar">' +
-                  '<span class="fp-month fp-option"></span>/<span class="fp-day fp-option"></span>' +
+    template: '<div class="rademade-calendar fp-container">' +
+                '<div class="calendar-data">' +
+                  '<div class="calendar-date fp-calendar-calendar"></div>' +
+                  //'<div class="calendar-date fp-calendar">' +
+                  //  '<span class="fp-month fp-option"></span>/<span class="fp-day fp-option"></span>' +
+                  //'</div>' +
                 '</div>' +
-                '<div class="fp-clock">' +
-                  '<span class="fp-hour fp-option"></span>:<span class="fp-minute fp-option"></span>' +
-                  '<span class="fp-meridiem fp-option"></span>' +
+                '<div class="calendar-time">' +
+                  '<div class="time-list fp-clock">' +
+                    '<label class="time-box">' +
+                      '<span class="time-label">Часы</span>' +
+                      '<span class="time-input fp-hour fp-option"></span>' +
+                    '</label>' +
+                    '<label class="time-box">' +
+                      '<span class="time-label">Минуты</span>' +
+                      '<span class="time-input fp-minute fp-option"></span>' +
+                    '</label>' +
+                    //'<span class="fp-meridiem fp-option"></span>' +
+                  '</div>' +
+                  '<div class="fp-save"><button class="time-btn fp-save-button" type="button">Save</button></div>' +
                 '</div>' +
-                '<div class="fp-save"><button class="btn btn-primary fp-save-button" type="button">Save</button></div>' +
-                '<div class="fp-description"></div>' +
-                '<div class="fp-errors"></div>' +
-                '<div class="fp-calendar-calendar"></div>' +
               '</div>',
+              //'<div class="fp-description"></div>' +
+              //'<div class="fp-errors"></div>' +,
     currentStep: null,
     dateTime: null,
     currentTimeZone: null, //null is browser default
@@ -131,7 +142,7 @@
       if( this.options.enableCalendar ) {
         if( step === "day" || step === "month" )
           this.calendar.show( );
-        else if( !this.options.calendar.isPinned ) 
+        else if( !this.options.calendar.isPinned )
           this.calendar.hide( );
       }
     },
@@ -208,7 +219,7 @@
       else
         fakeValue = this.formatToMoment( step, fakeValue );
 
-			if( !this.isValidDigitInput( fakeValue ) ) {
+      if( !this.isValidDigitInput( fakeValue ) ) {
         if( this.currentDigit === 2 )
           this.currentDigit = 1;
         return;
@@ -342,8 +353,8 @@
 
       this.$document.on( "keydown." + this.id, $.proxy( this.onKeyDown, this ) );
       this.$document.on( "keyup." + this.id, $.proxy( this.onKeyUp, this ) );
-			if( this.options.exitOnBackgroundClick )
-				this.$window.on( "click." + this.id, $.proxy( this.onClickToExit, this ) );
+      if( this.options.exitOnBackgroundClick )
+        this.$window.on( "click." + this.id, $.proxy( this.onClickToExit, this ) );
     },
 
     removeEvents: function( ) {
@@ -447,9 +458,9 @@
     getDate: function( ) {
       return this.dateTime.clone( );
     },
-		isValid: function( ) {
-			return !this.isError;
-		},
+    isValid: function( ) {
+      return !this.isError;
+    },
     updateDateTime: function( dateObj, moveNext ) {
       this.setDateTime( dateObj, moveNext );
       this.renderDateTime( );
@@ -489,19 +500,17 @@
     this.currentTimeZone = null;
 
     var template = '<div class="fp-cal-container">' +
-                      '<div class="fp-cal-nav">' +
-                        '<span class="fp-cal-left">&#9668;</span>' +
-                        '<span class="fp-cal-month"></span>' +
-                        '<span class="fp-cal-right">&#9658;</span>' +
+                      '<div class="date-month fp-cal-nav">' +
+                        '<span class="month-btn month-prev fp-cal-left"></span>' +
+                        '<span class="month-val fp-cal-month"></span>' +
+                        '<span class="month-btn month-next fp-cal-right"></span>' +
                       '</div>' +
-                      '<table>' +
-                        '<thead><tr class="fp-cal-days"></tr></thead>' +
-                        '<tbody class="fp-cal-dates"></tbody>' +
-                      '</div>' +
+                      '<div class="date-week fp-cal-days"></div>' +
+                      '<div class="date-day fp-cal-dates"></div>' +
                     '</div>',
-    dateTemplate = '<td class="fp-cal-date" data-date=""></td>',
-    weekTemplate = '<tr class="fp-cal-week"></tr>',
-    dayLabelTemplate = '<th class="fp-cal-day-label"></th>';
+    dateTemplate = '<div class="day-val"><span class="fp-cal-date" data-date=""></span></div>',
+    weekTemplate = '<div class="day-val-list fp-cal-week"></div>',
+    dayLabelTemplate = '<span class="week-val fp-cal-day-label"></span>';
 
     this.$container = $( template );
     this.$left = this.$container.find( ".fp-cal-left" );
