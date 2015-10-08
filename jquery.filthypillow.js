@@ -467,6 +467,7 @@
       this.dateChange( );
     },
     show: function( ) {
+      this.$element.trigger('fp:show');
       if( !this.isActive ) {
         this.setInitialDateTime( );
         this.$container.insertAfter( this.$element );
@@ -476,6 +477,7 @@
       }
     },
     hide: function( ) {
+      this.$element.trigger('fp:hide');
       if( this.isActive ) {
         this.$container.remove( );
         this.removeEvents( );
@@ -508,9 +510,11 @@
                       '<div class="date-week fp-cal-days"></div>' +
                       '<div class="date-day fp-cal-dates"></div>' +
                     '</div>',
-    dateTemplate = '<div class="day-val"><span class="fp-cal-date" data-date=""></span></div>',
+    dateTemplate = '<span class="fp-cal-date" data-date=""></span>',
     weekTemplate = '<div class="day-val-list fp-cal-week"></div>',
     dayLabelTemplate = '<span class="week-val fp-cal-day-label"></span>';
+
+    this.dateTemplateWrapper = '<div class="day-val"></div>'
 
     this.$container = $( template );
     this.$left = this.$container.find( ".fp-cal-left" );
@@ -656,6 +660,8 @@
           .attr( "data-date", lastDayOfPrevMonth - i )
           .addClass( "fp-cal-date-prev-" + lastDayOfPrevMonth - i )
           .addClass( "fp-not-in-month" ).text( lastDayOfPrevMonth - i )
+          .wrap(this.dateTemplateWrapper)
+          .parent()
           .prependTo( $week );
 
     //fill first week starting from days prior
@@ -663,6 +669,8 @@
       this.$dateTemplate.clone( )
           .addClass( "fp-cal-date-" + i )
           .attr( "data-date", i ).text( i )
+          .wrap(this.dateTemplateWrapper)
+          .parent()
           .appendTo( $week );
 
     $week.appendTo( this.$dates );
@@ -678,6 +686,8 @@
       this.$dateTemplate.clone( )
           .addClass( "fp-cal-date-" + i )
           .attr( "data-date", i ).text( i )
+          .wrap(this.dateTemplateWrapper)
+          .parent()
           .appendTo( $week );
     }
 
@@ -687,6 +697,8 @@
           .addClass( "fp-cal-date-next-" + i )
           .attr( "data-add-month", 1 )
           .attr( "data-date", i ).addClass( "fp-not-in-month" ).text( i )
+          .wrap(this.dateTemplateWrapper)
+          .parent()
           .appendTo( $week );
   };
 
@@ -697,15 +709,14 @@
   };
 
   Calendar.prototype.show = function( ) {
-    this.$element.trigger('fp:show');
     this.render( );
     this.$container.appendTo( this.$element );
   };
 
   Calendar.prototype.hide = function( ) {
-    this.$element.trigger('fp:hide');
-    this.$container.remove( );
-    this.removeEvents( );
+    // // prevent calendar remove when clock is clicked
+    // this.$container.remove( );
+    // this.removeEvents( );
   };
 
   Calendar.prototype.get = function( ) {
