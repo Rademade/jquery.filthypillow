@@ -189,10 +189,11 @@
     },
 
     submitTime : function(event) {
+      event.stopPropagation();
       if (event.keyCode == 13) {
+        event.preventDefault();
         this.onSave();
       }
-      event.stopPropagation();
     },
 
 
@@ -213,8 +214,8 @@
       this.$saveButton.on( "click", $.proxy( this.onSave, this ) );
       this.$hour.on("focus", this.clearTimeErrors.bind(this));
       this.$minute.on("focus", this.clearTimeErrors.bind(this));
-      // this.$hour.on("keypress", this.submitTime.bind(this));
-      // this.$minute.on("keypress", this.submitTime.bind(this));
+      this.$hour.on("keypress", this.submitTime.bind(this));
+      this.$minute.on("keypress", this.submitTime.bind(this));
       if( this.options.exitOnBackgroundClick )
         this.$window.on( "click." + this.id, $.proxy( this.onClickToExit, this ) );
     },
@@ -289,7 +290,7 @@
       } else{
         m = moment();
       };
-      m.zone( this.currentTimeZone );
+      m.utcOffset( this.currentTimeZone );
       //Initial value are done in increments of 15 from now.
       //If the time between now and 15 minutes from now is less than 5 minutes,
       //go onto the next 15.
@@ -305,11 +306,11 @@
           left = right = false;
 
       if( minDateTime ) {
-        minDateTime.zone( this.currentTimeZone );
+        minDateTime.utcOffset( this.currentTimeZone );
         left = date.diff( minDateTime, "second" ) < 0;
       }
       if( maxDateTime ) {
-        maxDateTime.zone( this.currentTimeZone );
+        maxDateTime.utcOffset( this.currentTimeZone );
         right = date.diff( maxDateTime, "second" ) > 0;
       }
 
@@ -317,7 +318,7 @@
     },
 
     setTimeZone: function( zone ) {
-      this.dateTime.zone( zone );
+      this.dateTime.utcOffset( zone );
       this.currentTimeZone = zone;
 
       if( this.options.enableCalendar )
@@ -500,7 +501,7 @@
     if( typeof this.options.minDateTime !== "function" )
       return true;
     var minDate = this.options.minDateTime( );
-    minDate.zone( this.currentTimeZone );
+    minDate.utcOffset( this.currentTimeZone );
     return date.diff( minDate, "second" ) > 0;
   };
 
@@ -508,7 +509,7 @@
     if( typeof this.options.maxDateTime !== "function" )
       return true;
     var maxDate = this.options.maxDateTime( );
-    maxDate.zone( this.currentTimeZone );
+    maxDate.utcOffset( this.currentTimeZone );
     return date.diff( maxDate, "second" ) < 0;
   };
 
