@@ -251,8 +251,8 @@
       if (isError) {
         return false;
       } else {
-        this.dateTime.set('hours', hours);
-        this.dateTime.set('minutes', minutes);
+        this.dateTime.set('hours', intHours);
+        this.dateTime.set('minutes', intMinutes);
         return true;
       };
 
