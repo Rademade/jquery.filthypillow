@@ -49,12 +49,12 @@
                 '<div class="calendar-time">' +
                   '<div class="time-list fp-clock">' +
                     '<label class="time-box">' +
-                      '<span class="time-label">Часы</span>' +
-                      '<span class="time-input fp-hour fp-option"></span>' +
+                      '<span class="time-label">Hours</span>' +
+                      '<input class="time-input fp-hour fp-option"/>' +
                     '</label>' +
                     '<label class="time-box">' +
-                      '<span class="time-label">Минуты</span>' +
-                      '<span class="time-input fp-minute fp-option"></span>' +
+                      '<span class="time-label">Minutes</span>' +
+                      '<input contenteditable="true" class="time-input fp-minute fp-option"/>' +
                     '</label>' +
                     //'<span class="fp-meridiem fp-option"></span>' +
                   '</div>' +
@@ -98,7 +98,6 @@
       this.$saveButton = this.$container.find( ".fp-save-button" );
       this.$descriptionBox = this.$container.find( ".fp-description" );
 
-
       if( this.options.enableCalendar )
         this.calendar = new Calendar( this.$container.find( ".fp-calendar-calendar" ),
         {
@@ -116,18 +115,7 @@
 
       this.setInitialDateTime( );
     },
-    showError: function( step, errorMessage ) {
-      this[ "$" + step ].addClass( "fp-error fp-out-of-range" );
-      this.$errorBox.text( errorMessage ).show( );
-      this.$saveButton.attr( "disabled", "disabled" );
-      this.isError = true;
-    },
-    hideError: function( step, errorMessage ) {
-      this.$container.find( ".fp-error" ).removeClass( "fp-error" );
-      this.$errorBox.hide( );
-      this.$saveButton.removeAttr( "disabled", "disabled" );
-      this.isError = false;
-    },
+
     activateSelectorTool: function( step ) {
       var $element = this[ "$" + step ];
       this.currentStep = step;
@@ -173,71 +161,6 @@
       return value;
     },
 
-    isValidDigitInput: function( digits ) {
-      digits = parseInt( digits, 10 );
-      if( this.currentStep === "month" ) {
-        if( digits > 12 )
-          return false;
-      }
-      else if( this.currentStep === "day" ) {
-        if( digits > this.dateTime.daysInMonth( ) )
-          return false;
-      }
-
-      return true;
-    },
-
-    updateDigit: function( step, digit, value ) {
-      var fakeValue, precedingDigit, moveNext = false;
-
-      if( step === "meridiem" )
-        return;
-
-      if( step === "day" )
-        step = "date"; //see moment getter/setter docs
-
-      if( digit === 1 && value === 0 ) {
-        this.isActiveLeadingZero = 1;
-        return;
-      }
-
-      if( digit === 2 && !this.isActiveLeadingZero ) {
-        precedingDigit = this.dateTime.get( step );
-        if( step === "hour" )
-          precedingDigit = this.to12Hour( precedingDigit )
-        else
-          precedingDigit = this.formatFromMoment( step, precedingDigit );
-        fakeValue = parseInt( precedingDigit + "" + value, 10 );
-      }
-      else
-        this.isActiveLeadingZero = 0;
-
-      fakeValue = fakeValue || value;
-
-      if( step === "hour" ) //this is retain the current meridiem
-        fakeValue = this.to24Hour( fakeValue );
-      else
-        fakeValue = this.formatToMoment( step, fakeValue );
-
-      if( !this.isValidDigitInput( fakeValue ) ) {
-        if( this.currentDigit === 2 )
-          this.currentDigit = 1;
-        return;
-      }
-
-      if( this.currentDigit === 2 )
-        moveNext = true;
-      else if( step === "month" && value > 1 )
-        moveNext = true;
-      else if( step === "date" && value > 3 )
-        moveNext = true;
-      else if( step === "hour" && value > 1 )
-        moveNext = true;
-      else if( step === "minute" && value > 5 )
-        moveNext = true;
-
-      this.updateDateTimeUnit( step, fakeValue, moveNext );
-    },
 
     onOptionClick: function( e ) {
       var $target = $( e.target ),
@@ -246,88 +169,6 @@
           step = classes.match( this.stepRegExp );
       if( step && step.length )
         this.activateSelectorTool( step[ 0 ] );
-    },
-
-    onKeyUp: function( e ) {
-      var keyCode = e.keyCode || e.which;
-      if( this.currentStep === "meridiem" )
-        return;
-
-      if( keyCode === 8 ) //backspace
-        this.currentDigit -= 1;
-
-      //0-9 with numpad support
-      if( ( keyCode >= 48 && keyCode <= 57 ) || ( keyCode >= 96 && keyCode <= 105 ) ) {
-        this.currentDigit += 1;
-        this.updateDigit( this.currentStep, this.currentDigit, keyCode % 48 );
-      }
-
-      if( this.currentDigit === 2 )
-        this.currentDigit = 0;
-    },
-
-    onKeyDown: function( e ) {
-      var keyCode = e.keyCode || e.which;
-      switch( keyCode ) {
-        case 38: this.moveUp( ); break; //up
-        case 40: this.moveDown( ); break; //down
-        case 37: this.moveLeft( ); break; //left
-        case 39: this.moveRight( ); break; //right
-      }
-      if( e.shiftKey && keyCode === 9 ) //shift + tab
-        this.moveLeft( );
-      else if( keyCode === 9 ) //tab
-        this.moveRight( );
-
-      if( keyCode === 13 ) //enter - lets them save on enter
-        this.$saveButton.click( );
-
-      //prevents page from moving left/right/up/down/submitting form on enter
-      return false;
-    },
-
-    moveDown: function( ) {
-      if( this.currentStep === "meridiem" ) {
-        //We do this so the day does not change
-        var offset = this.dateTime.format( "H" ) < 12 ? 12 : -12;
-        this.changeDateTimeUnit( "hour", offset );
-      }
-      else if( this.currentStep === "minute" )
-        this.changeDateTimeUnit( this.currentStep, -15 );
-      else if( this.currentStep )
-        this.changeDateTimeUnit( this.currentStep, -1 );
-
-      this.currentDigit = 0;
-    },
-
-    moveUp: function( ) {
-      if( this.currentStep === "meridiem" ) {
-        //TODO use function
-        var offset = parseInt( this.dateTime.format( "H" ), 10 ) < 12 ? 12 : -12;
-        this.changeDateTimeUnit( "hour", offset );
-      }
-      else if( this.currentStep === "minute" )
-        this.changeDateTimeUnit( this.currentStep, 15 );
-      else if( this.currentStep )
-        this.changeDateTimeUnit( this.currentStep, 1 );
-
-      this.currentDigit = 0;
-    },
-
-    moveLeft: function( ) {
-      if( !this.currentStep ) return;
-      var i = this.steps.indexOf( this.currentStep );
-      if( i === 0 ) i = this.steps.length - 1;
-      else i -= 1;
-      this.activateSelectorTool( this.steps[ i ] );
-    },
-
-    moveRight: function( ) {
-      if( !this.currentStep ) return;
-      var i = this.steps.indexOf( this.currentStep );
-      if( i === this.steps.length - 1 ) i = 0;
-      else i += 1;
-      this.activateSelectorTool( this.steps[ i ] );
     },
 
     onClickToExit: function( e ) {
@@ -342,17 +183,38 @@
       }
     },
 
+    clearTimeErrors : function() {
+      this.$hour.removeClass('is-error');
+      this.$minute.removeClass('is-error');
+    },
+
+    submitTime : function(event) {
+      if (event.keyCode == 13) {
+        this.onSave();
+      }
+      event.stopPropagation();
+    },
+
+
     onSave: function( ) {
-      if( this.isInRange( this.dateTime ) )
-        this.$element.trigger( "fp:save", [ this.dateTime ] );
+      if (!this['setTime']()) {
+        return false;
+      };
+
+      if (!this['isInRange'](this.dateTime)) {
+        return false;
+      };
+
+      this.$element.trigger( "fp:save", [ this.dateTime ] );
     },
 
     addEvents: function( ) {
       this.$options.on( "click", $.proxy( this.onOptionClick, this ) );
       this.$saveButton.on( "click", $.proxy( this.onSave, this ) );
-
-      this.$document.on( "keydown." + this.id, $.proxy( this.onKeyDown, this ) );
-      this.$document.on( "keyup." + this.id, $.proxy( this.onKeyUp, this ) );
+      this.$hour.on("focus", this.clearTimeErrors.bind(this));
+      this.$minute.on("focus", this.clearTimeErrors.bind(this));
+      this.$hour.on("keypress", this.submitTime.bind(this));
+      this.$minute.on("keypress", this.submitTime.bind(this));
       if( this.options.exitOnBackgroundClick )
         this.$window.on( "click." + this.id, $.proxy( this.onClickToExit, this ) );
     },
@@ -363,9 +225,33 @@
       this.$saveButton.off( "click" );
       this.$window.off( "click." + this.id );
 
-      this.$document.off( "keydown." + this.id );
-      this.$document.off( "keyup." + this.id );
     },
+
+    setTime: function() {
+      var hours = parseInt(this.$hour.val());
+      var minutes = parseInt(this.$minute.val());
+      var isError = false;
+
+      if (!hours || (hours < 0 || hours > 23)) {
+        this.$hour.addClass('is-error');
+        isError = true;
+      };
+
+      if (!minutes || (minutes < 0 || minutes > 59)) {
+        this.$minute.addClass('is-error');
+        isError = true;
+      };
+
+      if (isError) {
+        return false;
+      } else {
+        this.dateTime.set('hours', hours);
+        this.dateTime.set('minutes', minutes);
+        return true;
+      };
+
+    },
+
     setDateTime: function( dateObj, moveNext ) {
       this.dateTime = moment( dateObj );
 
@@ -383,15 +269,15 @@
     renderDateTime: function( ) {
       this.$month.text( this.dateTime.format( "MM" ) );
       this.$day.text( this.dateTime.format( "DD" ) );
-      this.$hour.text( this.dateTime.format( "hh" ) );
-      this.$minute.text( this.dateTime.format( "mm" ) );
+      this.$hour.val( this.dateTime.format( "HH" ) );
+      this.$minute.val( this.dateTime.format( "mm" ) );
       this.$meridiem.text( this.dateTime.format( "A" ) );
 
       this.$descriptionBox.text( this.dateTime.format( "LLLL" ) );
     },
     setInitialDateTime: function( ) {
-      var m = moment( ),
-          minutes = m.format( "m" );
+      var m = moment(this.$element.val(), 'DD.MM.YYYY HH:mm'),
+          minutes = m.format( "M" );
       m.zone( this.currentTimeZone );
 
       //Initial value are done in increments of 15 from now.
@@ -440,10 +326,10 @@
       var tmpDateTime = this.dateTime.clone( ).add( value, unit + "s" ),
           isInRange = this.isInRange( tmpDateTime );
 
-      if( !this.isError && !isInRange )
-        return;
-      else if( isInRange )
-        this.hideError( );
+      // if( !this.isError && !isInRange )
+      //   return;
+      // else if( isInRange )
+      //   this.hideError( );
 
       this.dateTime.add( value, unit + "s" );
       this.renderDateTime( );
@@ -477,6 +363,7 @@
       }
     },
     hide: function( ) {
+      this.clearTimeErrors();
       this.$element.trigger('fp:hide');
       if( this.isActive ) {
         this.$container.remove( );
@@ -586,8 +473,8 @@
   };
 
   Calendar.prototype.highlightDate = function( date ) {
-    this.$dates.find( ".active" ).removeClass( "active" );
-    this.$dates.find( ".fp-cal-date-" + date ).addClass( "active" );
+    this.$dates.find( ".is-active" ).removeClass( "is-active" );
+    this.$dates.find( ".fp-cal-date-" + date ).parent().addClass( "is-active" );
   };
 
   Calendar.prototype.buildTemplate = function( ) {
@@ -658,10 +545,10 @@
       this.$dateTemplate.clone( )
           .attr( "data-add-month", -1 )
           .attr( "data-date", lastDayOfPrevMonth - i )
-          .addClass( "fp-cal-date-prev-" + lastDayOfPrevMonth - i )
-          .addClass( "fp-not-in-month" ).text( lastDayOfPrevMonth - i )
+          .addClass( "fp-cal-date-prev-" + lastDayOfPrevMonth - i ).text( lastDayOfPrevMonth - i )
           .wrap(this.dateTemplateWrapper)
           .parent()
+          .addClass("fp-not-in-month is-disabled")
           .prependTo( $week );
 
     //fill first week starting from days prior
@@ -696,9 +583,10 @@
       this.$dateTemplate.clone( )
           .addClass( "fp-cal-date-next-" + i )
           .attr( "data-add-month", 1 )
-          .attr( "data-date", i ).addClass( "fp-not-in-month" ).text( i )
+          .attr( "data-date", i ).text( i )
           .wrap(this.dateTemplateWrapper)
           .parent()
+          .addClass("fp-not-in-month is-disabled")
           .appendTo( $week );
   };
 
