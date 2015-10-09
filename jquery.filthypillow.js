@@ -228,16 +228,22 @@
     },
 
     setTime: function() {
-      var hours = parseInt(this.$hour.val());
-      var minutes = parseInt(this.$minute.val());
+      var stringHours = this.$hour.val();
+      var stringMinutes = this.$minute.val();
+      var intHours = parseInt(stringHours);
+      var intMinutes = parseInt(stringMinutes);
       var isError = false;
 
-      if (!hours || (hours < 0 || hours > 23)) {
+      var isValidNumber = function(value) {
+        return value.match(/^\d+$/);
+      };
+
+      if ( !isValidNumber(stringHours) || (intHours < 0 || intHours > 23)) {
         this.$hour.addClass('is-error');
         isError = true;
       };
 
-      if (!minutes || (minutes < 0 || minutes > 59)) {
+      if (!isValidNumber(stringMinutes) || (intMinutes < 0 || intMinutes > 59)) {
         this.$minute.addClass('is-error');
         isError = true;
       };
