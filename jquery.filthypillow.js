@@ -282,10 +282,14 @@
       this.$descriptionBox.text( this.dateTime.format( "LLLL" ) );
     },
     setInitialDateTime: function( ) {
-      var m = moment(this.$element.val(), 'DD.MM.YYYY HH:mm'),
-          minutes = m.format( "M" );
+      var currentInputValue = this.$element.val();
+      var m;
+      if (currentInputValue) {
+        m = moment(currentInputValue, 'DD.MM.YYYY HH:mm');
+      } else{
+        m = moment();
+      };
       m.zone( this.currentTimeZone );
-
       //Initial value are done in increments of 15 from now.
       //If the time between now and 15 minutes from now is less than 5 minutes,
       //go onto the next 15.
