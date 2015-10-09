@@ -213,8 +213,8 @@
       this.$saveButton.on( "click", $.proxy( this.onSave, this ) );
       this.$hour.on("focus", this.clearTimeErrors.bind(this));
       this.$minute.on("focus", this.clearTimeErrors.bind(this));
-      this.$hour.on("keypress", this.submitTime.bind(this));
-      this.$minute.on("keypress", this.submitTime.bind(this));
+      // this.$hour.on("keypress", this.submitTime.bind(this));
+      // this.$minute.on("keypress", this.submitTime.bind(this));
       if( this.options.exitOnBackgroundClick )
         this.$window.on( "click." + this.id, $.proxy( this.onClickToExit, this ) );
     },
